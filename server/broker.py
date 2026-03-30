@@ -12,13 +12,24 @@ class Broker:
 
     def start(self):
         server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_sock.bind((self.host, self.port))
         server_sock.listen(10)
 
         print(f"Secure Server running on {self.host}:{self.port}")
 
         while True:
-            client_sock, addr = server_sock.accept()
-            secure_sock = self.context.wrap_socket(client_sock, server_side=True)
-            handler = ClientHandler(secure_sock, addr, self.topic_manager)
-            handler.start()
+            try:
+                client_sock, addr = server_sock.accept()
+                try:
+                    secure_sock = self.context.wrap_socket(client_sock, server_side=True)
+                except Exception as e:
+                    print(f"[SSL ERROR] {addr}: {e}")
+                    client_sock.close()
+                    continue
+
+                handler = ClientHandler(secure_sock, addr, self.topic_manager)
+                handler.start()
+
+            except Exception as e:
+                print(f"[SERVER ERROR]: {e}")

@@ -14,6 +14,11 @@ class TopicManager:
         with self.lock:
             self.topics[topic].discard(client)
 
+    def remove_client(self, client):
+        with self.lock:
+            for subs in self.topics.values():
+                subs.discard(client)
+
     def get_subscribers(self, topic):
         with self.lock:
             return list(self.topics[topic])

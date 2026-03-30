@@ -19,7 +19,11 @@ class ClientHandler(threading.Thread):
                     break
 
                 msg = Message.deserialize(data)
+                if not msg:
+                    continue
+
                 self.handle_message(msg)
+
         except Exception as e:
             print(f"[ERROR] {self.addr}: {e}")
         finally:
@@ -34,12 +38,17 @@ class ClientHandler(threading.Thread):
 
         elif msg.type == "PUBLISH":
             subscribers = self.topic_manager.get_subscribers(msg.topic)
+
             for sub in subscribers:
                 try:
                     send_msg(sub.sock, Message("EVENT", msg.topic, msg.data))
-                except:
-                    pass
+                except Exception:
+                    self.topic_manager.remove_client(sub)
 
     def cleanup(self):
         print(f"[DISCONNECTED] {self.addr}")
-        self.sock.close()
+        self.topic_manager.remove_client(self)
+        try:
+            self.sock.close()
+        except:
+            pass
