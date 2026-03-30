@@ -13,7 +13,10 @@ class Message:
 
     @staticmethod
     def deserialize(bytes_data):
-        obj = json.loads(bytes_data.decode())
-        msg = Message(obj['type'], obj.get('topic'), obj.get('data'))
-        msg.timestamp = obj.get('timestamp', time.time())
-        return msg
+        try:
+            obj = json.loads(bytes_data.decode())
+            msg = Message(obj['type'], obj.get('topic'), obj.get('data'))
+            msg.timestamp = obj.get('timestamp', time.time())
+            return msg
+        except Exception:
+            return None
