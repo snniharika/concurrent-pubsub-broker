@@ -23,6 +23,20 @@ class Subscriber(ClientBase):
         except Exception as e:
             print(f"[SUBSCRIBE ERROR]: {e}")
 
+    # ✅ NEW METHOD
+    def unsubscribe(self, topic):
+        if not topic:
+            print("[ERROR] Topic cannot be empty")
+            return
+
+        try:
+            msg = Message("UNSUBSCRIBE", topic)
+            self.send(msg)
+            print(f"[UNSUBSCRIBED] {topic}")
+
+        except Exception as e:
+            print(f"[UNSUBSCRIBE ERROR]: {e}")
+
     def listen(self):
         while self.running:
             try:

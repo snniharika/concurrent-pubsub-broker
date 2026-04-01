@@ -1,9 +1,14 @@
 from client.subscriber import Subscriber
 
-if __name__ == "__main__":
-    sub = Subscriber()
-    sub.start()
 
-    while True:
-        topic = input("Subscribe: ")
+sub = Subscriber()
+sub.start()
+
+while True:
+    cmd = input("Enter (sub/unsub): ")
+    topic = input("Topic: ")
+
+    if cmd == "sub":
         sub.subscribe(topic)
+    elif cmd == "unsub":
+        sub.unsubscribe(topic) 
