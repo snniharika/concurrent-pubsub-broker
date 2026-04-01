@@ -1,35 +1,50 @@
-import threading
-import time
-from client.client_base import ClientBase
+import socket
+from common.utils import send_msg, recv_msg
+from common.protocol import Message
+from client.ssl_client import create_client_ssl
 
-class Subscriber(ClientBase):
-    def __init__(self):
-        super().__init__()
-        self.latencies = []
-        self.running = True
 
-    def subscribe(self, topic):
-        from common.protocol import Message
-        if not topic:
-            return
-        self.send(Message("SUBSCRIBE", topic))
+class ClientBase:
+    def __init__(self, host='127.0.0.1', port=5000):
+        try:
+            # Step 1: Create TCP socket
+            raw_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def listen(self):
-        while self.running:
-            try:
-                msg = self.receive()
-                if not msg:
-                    break
+            # Step 2: Wrap socket with SSL
+            context = create_client_ssl()
+            self.sock = context.wrap_socket(raw_sock, server_hostname=host)
 
-                if msg.type == "EVENT":
-                    latency = time.time() - msg.timestamp
-                    self.latencies.append(latency)
-                    avg = sum(self.latencies) / len(self.latencies)
+            # Step 3: Connect to server
+            self.sock.connect((host, port))
 
-                    print(f"[{msg.topic}] {msg.data} | Latency: {latency:.4f}s | Avg: {avg:.4f}s")
+            print(f"[CONNECTED] to {host}:{port}")
 
-            except Exception:
-                break
+        except Exception as e:
+            print(f"[CONNECTION ERROR]: {e}")
+            raise
 
-    def start(self):
-        threading.Thread(target=self.listen, daemon=True).start()
+    def send(self, msg):
+        try:
+            send_msg(self.sock, msg)
+        except Exception as e:
+            print(f"[SEND ERROR]: {e}")
+            raise
+
+    def receive(self):
+        try:
+            data = recv_msg(self.sock)
+            if not data:
+                return None
+
+            return Message.deserialize(data)
+
+        except Exception as e:
+            print(f"[RECEIVE ERROR]: {e}")
+            return None
+
+    def close(self):
+        try:
+            self.sock.close()
+            print("[DISCONNECTED]")
+        except Exception:
+            pass
