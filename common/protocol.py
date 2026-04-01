@@ -16,7 +16,7 @@ class Message:
         try:
             obj = json.loads(bytes_data.decode())
             msg = Message(obj['type'], obj.get('topic'), obj.get('data'))
-            msg.timestamp = obj.get('timestamp', time.time())
+            msg.timestamp = obj.get('timestamp', time.time()) #since constructor had created new timestamp
             return msg
         except Exception:
             return None
