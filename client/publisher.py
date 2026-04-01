@@ -16,16 +16,12 @@ class Publisher(ClientBase):
             return
 
         try:
-            # Step 1: Create message
             msg = Message("PUBLISH", topic, data)
 
-            # Step 2: Send message to broker
             self.send(msg)
 
-            # Step 3: Update message count
             self.count += 1
 
-            # Step 4: Calculate throughput
             elapsed = time.time() - self.start_time
 
             if elapsed > 0:

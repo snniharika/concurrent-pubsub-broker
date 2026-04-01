@@ -33,11 +33,9 @@ class Subscriber(ClientBase):
                     break
 
                 if msg.type == "EVENT":
-                    # Calculate latency
                     latency = time.time() - msg.timestamp
                     self.latencies.append(latency)
 
-                    # Calculate average latency
                     avg = sum(self.latencies) / len(self.latencies)
 
                     print(f"[{msg.topic}] {msg.data} | Latency: {latency:.4f}s | Avg: {avg:.4f}s")
